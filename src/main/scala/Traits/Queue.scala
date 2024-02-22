@@ -1,0 +1,5 @@
+package Traits
+
+trait Queue {
+
+}
