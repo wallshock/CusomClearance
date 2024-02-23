@@ -4,8 +4,8 @@ import org.scalatest.matchers.should.Matchers
 class QueueSpec extends AnyFlatSpec with Matchers {
   "A Queue" should "enqueue and dequeue trucks" in {
     val queue = new Queue(2)
-    val truck1 = new CargoTruck
-    val truck2 = new CargoTruck
+    val truck1 = new CargoTruck(5)
+    val truck2 = new CargoTruck(5)
 
     queue.enqueue(truck1) should be (Right(()))
     queue.enqueue(truck2) should be (Right(()))
@@ -24,8 +24,8 @@ class QueueSpec extends AnyFlatSpec with Matchers {
 
   it should "not allow more than maxSize trucks to be enqueued" in {
     val queue = new Queue(1)
-    val truck1 = new CargoTruck
-    val truck2 = new CargoTruck
+    val truck1 = new CargoTruck(4)
+    val truck2 = new CargoTruck(4)
 
     queue.enqueue(truck1) should be (Right(()))
     queue.enqueue(truck2) should be (Left("Queue is full"))
@@ -43,7 +43,7 @@ class QueueSpec extends AnyFlatSpec with Matchers {
 
   it should "return None when trying to get an element at an invalid index" in {
     val queue = new Queue(1)
-    val truck = new CargoTruck
+    val truck = new CargoTruck(6)
 
     queue.enqueue(truck)
 
@@ -53,7 +53,7 @@ class QueueSpec extends AnyFlatSpec with Matchers {
 
   it should "return the correct truck when getting an element at a valid index" in {
     val queue = new Queue(1)
-    val truck = new CargoTruck
+    val truck = new CargoTruck(5)
 
     queue.enqueue(truck)
 
