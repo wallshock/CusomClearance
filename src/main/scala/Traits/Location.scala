@@ -1,5 +1,9 @@
 package Traits
 
 trait Location {
-  val location: String //UAP
+  def getLocation: String
+
+  def logEntry(truck: Truck): Unit
+
+  def logExit(truck: Truck): Unit
 }

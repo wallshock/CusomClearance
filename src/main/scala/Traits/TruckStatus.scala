@@ -1,5 +1,7 @@
 package Traits
 
-case class TruckStatus(location: Location, documentCheck: Boolean, goodsCheck: Boolean) {
-  
+class TruckStatus {
+  var location: Option[String] = None
+  var documentCheck: Boolean = false
+  var goodsCheck: Boolean = false
 }
