@@ -1,8 +1,9 @@
+import Locations.Queue
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class QueueSpec extends AnyFlatSpec with Matchers {
-  "A Queue" should "enqueue and dequeue trucks" in {
+  "A Locations.Queue" should "enqueue and dequeue trucks" in {
     val queue = new Queue(2)
     val truck1 = new CargoTruck(5)
     val truck2 = new CargoTruck(5)

@@ -1,4 +1,5 @@
-import Traits.{Location, Truck, TruckStatus}
+import Traits.TruckLogic.{Truck, TruckStatus}
+import Traits.Location
 
 import java.util.UUID
 import scala.util.Random

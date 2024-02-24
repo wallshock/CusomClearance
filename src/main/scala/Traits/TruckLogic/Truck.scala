@@ -1,4 +1,6 @@
-package Traits
+package Traits.TruckLogic
+
+import Traits.Location
 
 trait Truck {
   val truckId: String

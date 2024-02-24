@@ -1,4 +1,8 @@
-import Traits.{ControlGate, Location, Truck}
+package Locations
+
+import Traits.TruckLogic.TruckState
+import Traits.TruckLogic.Truck
+import Traits.{ControlGate, Location}
 
 class GoodsControlGate extends ControlGate, Location {
 

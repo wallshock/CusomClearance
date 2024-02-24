@@ -1,9 +1,12 @@
+package Locations
+
+import Traits.TruckLogic.TruckState
+import Traits.TruckLogic.Truck
+
 import scala.collection.mutable.ArrayBuffer
-import Traits.Truck
 
 class Queue(maxSize: Int) {
   private val queue: ArrayBuffer[Truck] = ArrayBuffer()
-
   def enqueue(truck: Truck): Either[String, Unit] = {
     if (queue.size >= maxSize) Left("Queue is full")
     else {

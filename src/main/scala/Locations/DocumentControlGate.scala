@@ -1,4 +1,8 @@
-import Traits.{ControlGate, Location, Truck}
+package Locations
+
+import Traits.TruckLogic.TruckState
+import Traits.TruckLogic.Truck
+import Traits.{ControlGate, Location}
 
 class DocumentControlGate extends ControlGate, Location {
   override def getLocation: String = "DocumentControlGate"

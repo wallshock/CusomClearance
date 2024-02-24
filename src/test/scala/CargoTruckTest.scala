@@ -1,6 +1,7 @@
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import Traits.{Location, Truck}
+import Traits.Location
+import Traits.TruckLogic.Truck
 
 class CargoTruckSpec extends AnyFlatSpec with Matchers {
 
