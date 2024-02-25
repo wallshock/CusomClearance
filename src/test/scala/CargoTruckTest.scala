@@ -7,13 +7,11 @@ class CargoTruckSpec extends AnyFlatSpec with Matchers {
 
   "A CargoTruck" should "have id" in {
     val truck = new CargoTruck(10)
-    println(truck.truckId)
     truck.truckId should not be empty
   }
 
   "A CargoTruck" should "have a license plate" in {
     val truck = new CargoTruck(10)
-    println(truck.licensePlate)
     truck.licensePlate should not be empty
   }
 

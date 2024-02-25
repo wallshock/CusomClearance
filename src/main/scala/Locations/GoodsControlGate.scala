@@ -1,32 +1,49 @@
 package Locations
 
-import Traits.TruckLogic.TruckState
-import Traits.TruckLogic.Truck
+import Traits.TruckLogic.{GoodsCheck, Truck, TruckState}
 import Traits.{ControlGate, Location}
 
 class GoodsControlGate extends ControlGate, Location {
 
   override def getLocation: String = "GoodsControlGate"
-  private var gateOpen: Boolean = false //check override
+  private var gateFree: Boolean = true
+  val weightCheckTempo: Int = 1
   override def checkTruck(truck: Truck): Boolean = {
     true
   }
-  override def isGateOpen: Boolean = {
-    gateOpen
-  }
-  override def openGate(): Unit = {
-    gateOpen = true
+  
+  def checkingProcess(truck: Truck): Int = {
+    var weightChecked = 0
+    if(checkTruck(truck)){
+      truck.status.state match {
+        case GoodsCheck(_,value) =>
+          weightChecked = value + 1
+        case _ =>
+      }
+    } else {
+      weightChecked = -1
+    }
+    weightChecked
   }
 
-  override def closeGate(): Unit = {
-    gateOpen = false
-  }
-
+  
   override def logEntry(truck: Truck): Unit = {
     println(s"Truck ${truck.licensePlate} entered the gate at ${getLocation} at ${java.time.LocalDateTime.now}")
   }
   override def logExit(truck: Truck): Unit = {
     println(s"Truck ${truck.licensePlate} exited the gate at ${getLocation} at ${java.time.LocalDateTime.now}")
   }
-  
+  def isGateFree: Boolean = {
+    gateFree
+  }
+
+  def occupy(): Unit = {
+    gateFree = false
+  }
+
+  def release(): Unit = {
+    gateFree = true
+  }
+
+
 }

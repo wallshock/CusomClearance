@@ -5,10 +5,10 @@ import Traits.TruckLogic.*
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-object CustomClearanceSystem {
+class CustomClearanceSystemForTest(val queueSize:Int) {
 
   private val truckList: mutable.PriorityQueue[Truck] = mutable.PriorityQueue[Truck]()
-  private val queues: ListBuffer[Queue] = ListBuffer(Queue(5,0), Queue(5,1))
+  private val queues: ListBuffer[Queue] = ListBuffer(Queue(queueSize,0), Queue(queueSize,1))
   private val documentControlGate: DocumentControlGate = DocumentControlGate()
   private val goodsControlGates: ListBuffer[GoodsControlGate] = ListBuffer(GoodsControlGate(),GoodsControlGate())
 
@@ -144,5 +144,4 @@ object CustomClearanceSystem {
     }
     result
   }
-
 }
