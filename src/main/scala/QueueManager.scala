@@ -5,7 +5,17 @@ import scala.collection.mutable.ListBuffer
 
 class QueueManager(queues: ListBuffer[Queue]) {
   def optimizeQueues(): Unit = {
-    //todo
+    val minSize = queues.minBy(_.size).size
+    val maxSize = queues.maxBy(_.size).size
+    if (minSize != maxSize) {
+      val shortestQueues = queues.filter(_.size == minSize)
+      val longestQueues = queues.filter(_.size == maxSize)
+
+      if theres more shortest than longest take max values from longques
+      else if theres more longest take max from shortest
+    }
+
+    }
   }
 
   def decreaseWaitingTimes(queueIndex:Int,time:Int): Unit = {
