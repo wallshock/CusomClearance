@@ -9,7 +9,7 @@ class GoodsControlGate extends ControlGate, Location {
   private var gateFree: Boolean = true
   val weightCheckTempo: Int = 1
   override def checkTruck(truck: Truck): Boolean = {
-    true
+    truck.weight != 60 //sample condition to test
   }
   
   def checkingProcess(truck: Truck): Int = {

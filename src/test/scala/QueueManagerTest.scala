@@ -10,8 +10,9 @@ class QueueManagerSpec extends AnyFlatSpec with Matchers {
     val queueManager = new QueueManager(queues)
     val truck = new CargoTruck(5)
 
-    val waitingTime = queueManager.add(truck)
+    val (queue,waitingTime) = queueManager.add(truck)
 
+    queue should be (0)
     waitingTime should be (5)
     queues.exists(_.size == 1) should be (true)
   }

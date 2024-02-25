@@ -7,7 +7,7 @@ import scala.collection.mutable.ArrayBuffer
 
 class Queue(maxSize: Int, val queueIndex: Int) extends Location {
   private val elements: ArrayBuffer[Truck] = ArrayBuffer()
-
+  private var gateWaitTime:Int = 0
   override def getLocation: String = "Queue"
 
   override def logEntry(truck: Truck): Unit = {
@@ -26,18 +26,23 @@ class Queue(maxSize: Int, val queueIndex: Int) extends Location {
     }
   }
 
+  def increaseGateWaitTime(time:Int): Unit = {
+    gateWaitTime += time
+  }
   def dequeue(): Option[Truck] = {
-    logExit(elements(0))
     if (elements.isEmpty) None
-    else Some(elements.remove(0))
+    else
+      logExit(elements(0))
+      Some(elements.remove(0))
   }
 
-  def reduceWaitingTime(time:Int): Unit = {
+  //todo ugly
+  def reduceGateCheckWaitTime(time:Int): Unit = {
+    gateWaitTime -= time
     for(truck <- elements){
       truck.status.state match {
         case InQueue(queue, waitingTime) =>{
           truck.status.state = InQueue(queue,waitingTime-time)
-          println("Successfully reduced")
         }
         case _ =>
       }
@@ -60,9 +65,8 @@ class Queue(maxSize: Int, val queueIndex: Int) extends Location {
     if (index >= 0 && index < elements.size) Some(elements(index))
     else None
   }
-
   def waitingTime: Int = {
-    var result = 0
+    var result = gateWaitTime
     for (element <- elements) {
       result += element.weight
     }
@@ -70,7 +74,7 @@ class Queue(maxSize: Int, val queueIndex: Int) extends Location {
   }
 
   def waitingTimeAt(index: Int): Int = {
-    var result = 0
+    var result = gateWaitTime
     if (index >= elements.size) {
       result = waitingTime
     } else{

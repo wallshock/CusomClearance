@@ -7,10 +7,10 @@ class QueueManager(queues: ListBuffer[Queue]) {
   def optimizeQueues(): Unit = {
     //todo
   }
-  
+
   def decreaseWaitingTimes(queueIndex:Int,time:Int): Unit = {
     val queue = queues(queueIndex)
-    queue.reduceWaitingTime(time)
+    queue.reduceGateCheckWaitTime(time)
   }
 
   def add(truck:Truck): (Int,Int) ={

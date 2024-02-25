@@ -97,4 +97,21 @@ class QueueSpec extends AnyFlatSpec with Matchers {
     queue.waitingTimeAt(2) should be(2)
     queue.waitingTimeAt(3) should be(2)
   }
+
+  it should "calculate the correct waiting time with different GateWayTime" in {
+    val queue = new Queue(5, 0)
+    val element1 = new CargoTruck(5)
+    val element2 = new CargoTruck(3)
+    val element3 = new CargoTruck(2)
+    queue.enqueue(element1)
+    queue.enqueue(element2)
+    queue.enqueue(element3)
+
+    queue.waitingTime should be(10)
+    queue.dequeue()
+    queue.increaseGateWaitTime(5)
+    queue.waitingTime should be(10)
+    queue.reduceGateCheckWaitTime(1)
+    queue.waitingTime should be(9)
+  }
 }

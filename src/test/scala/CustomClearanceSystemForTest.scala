@@ -50,12 +50,17 @@ class CustomClearanceSystemForTest(val queueSize:Int) {
     queue.peek match {
       case Some(peekTruck) if peekTruck == truck =>
         if (goodsControlGate.isGateFree) {
+          queue.increaseGateWaitTime(truck.weight)
           truck.status.state = GoodsCheck(queueIndex)
           queue.dequeue()
           goodsControlGate.occupy()
         }
       case _ =>
     }
+  }
+  
+  def getWaitTime(idx:Int):Int={
+    queues(idx).waitingTime
   }
 
   private def handleGoodsCheck(truck: Truck): Unit = {
@@ -68,7 +73,9 @@ class CustomClearanceSystemForTest(val queueSize:Int) {
       queueManager.decreaseWaitingTimes(gateIndex,goodsControlGate.weightCheckTempo)
     } else {
       truck.status.state match {
-        case GoodsCheck(gateIndex,weight) => queueManager.decreaseWaitingTimes(gateIndex,truck.weight-weight)
+        case GoodsCheck(gateIndex,weight) =>
+          queueManager.decreaseWaitingTimes(gateIndex,truck.weight-weight)
+          print(s"Reducing Time wait for queue $gateIndex by ${truck.weight-weight}")
         case _ =>
       }
       truck.status.state = Departed

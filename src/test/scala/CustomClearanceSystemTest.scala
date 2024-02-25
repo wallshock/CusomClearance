@@ -221,10 +221,11 @@ class CustomClearanceSystemSpec extends AnyFlatSpec with Matchers with BeforeAnd
     val status3 = smallQueueSystem.findStatusById(truckId3)
     val status4 = smallQueueSystem.findStatusById(truckId4)
 
+
     status1.state shouldBe GoodsCheck(0,0)
     status2.state shouldBe GoodsCheck(1,0)
-    status3.state shouldBe InQueue(0,54)
-    status4.state shouldBe InQueue(1,46)
+    status3.state shouldBe InQueue(1,44)
+    status4.state shouldBe InQueue(0,56)
   }
 
   "A CustomClearanceSystem" should "handle queue management many trucks with small queue 2" in {
@@ -242,7 +243,33 @@ class CustomClearanceSystemSpec extends AnyFlatSpec with Matchers with BeforeAnd
 
     status1.state shouldBe GoodsCheck(0, 1)
     status2.state shouldBe GoodsCheck(1, 1)
-    status3.state shouldBe InQueue(0, 53)
-    status4.state shouldBe InQueue(1, 45)
+    status3.state shouldBe InQueue(1, 43)
+    status4.state shouldBe InQueue(0, 55)
+  }
+
+  "A CustomClearanceSystem" should "handle rejection of Truck and adjustment of waiting times" in {
+    val smallQueueSystem = CustomClearanceSystemForTest(2)
+    val truckId1 = smallQueueSystem.arrive(50)
+    val truckId2 = smallQueueSystem.arrive(60)
+    val truckId3 = smallQueueSystem.arrive(30)
+    val truckId4 = smallQueueSystem.arrive(20)
+    val truckId5 = smallQueueSystem.arrive(10)
+    val truckId6 = smallQueueSystem.arrive(5)
+    stepSystem(smallQueueSystem, 5)
+    val status1 = smallQueueSystem.findStatusById(truckId1)
+    val status2 = smallQueueSystem.findStatusById(truckId2)
+    val status3 = smallQueueSystem.findStatusById(truckId3)
+    val status4 = smallQueueSystem.findStatusById(truckId4)
+    val status5 = smallQueueSystem.findStatusById(truckId5)
+    val status6 = smallQueueSystem.findStatusById(truckId6)
+    println(smallQueueSystem.getWaitTime(0))
+    println(smallQueueSystem.getWaitTime(1))
+
+    status1.state shouldBe GoodsCheck(0, 1)
+    status2.state shouldBe Departed
+    status3.state shouldBe InQueue(0,79)
+    status4.state shouldBe GoodsCheck(1,0)
+    status5.state shouldBe InQueue(0,89)
+    status6.state shouldBe InQueue(1,25)
   }
 }
