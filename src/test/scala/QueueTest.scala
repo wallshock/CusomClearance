@@ -38,14 +38,19 @@ class QueueSpec extends AnyFlatSpec with Matchers {
   }
 
 
-  it should "return None when trying to get an element at an invalid index" in {
-    val queue = new Queue(1,0)
+  it should "throw an IndexOutOfBoundsException when an invalid index is provided" in {
+    val queue = new Queue(1, 0)
     val truck = new CargoTruck(6)
 
     queue.enqueue(truck)
 
-    queue.get(-1) should be (None)
-    queue.get(1) should be (None)
+    a[IndexOutOfBoundsException] should be thrownBy {
+      queue.get(-1)
+    }
+
+    a[IndexOutOfBoundsException] should be thrownBy {
+      queue.get(1)
+    }
   }
 
   it should "return the correct truck when getting an element at a valid index" in {
@@ -54,7 +59,7 @@ class QueueSpec extends AnyFlatSpec with Matchers {
 
     queue.enqueue(truck)
 
-    queue.get(0) should be (Some(truck))
+    queue.get(0) should be (truck)
   }
 
   it should "calculate the correct waiting time" in {
@@ -96,6 +101,7 @@ class QueueSpec extends AnyFlatSpec with Matchers {
     queue.waitingTimeAt(1) should be(2)
     queue.waitingTimeAt(2) should be(2)
     queue.waitingTimeAt(3) should be(2)
+    queue.waitingTimeAt(4) should be(2)
   }
 
   it should "calculate the correct waiting time with different GateWayTime" in {

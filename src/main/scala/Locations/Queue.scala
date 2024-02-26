@@ -25,6 +25,13 @@ class Queue(maxSize: Int, val queueIndex: Int) extends Location {
       Right(())
     }
   }
+  
+  def printr():Unit = {
+    for(el <- elements){
+      print(s"${el.weight} ")
+    }
+    println("")
+  }
 
   def increaseGateWaitTime(time:Int): Unit = {
     gateWaitTime += time
@@ -34,6 +41,12 @@ class Queue(maxSize: Int, val queueIndex: Int) extends Location {
     else
       logExit(elements(0))
       Some(elements.remove(0))
+  }
+
+  def setElementAt(index: Int, truck: Truck): Unit = {
+    if (index >= 0 && index < maxSize) {
+      elements(index) = truck
+    }
   }
 
   //todo ugly
@@ -49,6 +62,12 @@ class Queue(maxSize: Int, val queueIndex: Int) extends Location {
     }
   }
 
+  def removeAt(i: Int): Option[Truck] = {
+    if (i >= 0 && i < elements.length) {
+      Some(elements.remove(i))
+    } else None
+  }
+
   def size: Int = {
     elements.size
   }
@@ -61,10 +80,11 @@ class Queue(maxSize: Int, val queueIndex: Int) extends Location {
     elements.size == maxSize
   }
 
-  def get(index: Int): Option[Truck] = {
-    if (index >= 0 && index < elements.size) Some(elements(index))
-    else None
+  def get(index: Int): Truck = {
+    if (index >= 0 && index < elements.size) elements(index)
+    else throw new IndexOutOfBoundsException("Invalid index: " + index)
   }
+
   def waitingTime: Int = {
     var result = gateWaitTime
     for (element <- elements) {

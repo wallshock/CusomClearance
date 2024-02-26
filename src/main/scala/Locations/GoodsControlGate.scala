@@ -37,12 +37,14 @@ class GoodsControlGate extends ControlGate, Location {
     gateFree
   }
 
-  def occupy(): Unit = {
+  def occupy(truck: Truck): Unit = {
     gateFree = false
+    logEntry(truck)
   }
 
-  def release(): Unit = {
+  def release(truck: Truck): Unit = {
     gateFree = true
+    logExit(truck)
   }
 
 

@@ -3,14 +3,14 @@ import Traits.ControlGate
 import Traits.TruckLogic.*
 
 import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
+import scala.collection.immutable.List
 
 object CustomClearanceSystem {
 
   private val truckList: mutable.PriorityQueue[Truck] = mutable.PriorityQueue[Truck]()
-  private val queues: ListBuffer[Queue] = ListBuffer(Queue(5,0), Queue(5,1))
+  private val queues: List[Queue] = List(Queue(5,0), Queue(5,1))
   private val documentControlGate: DocumentControlGate = DocumentControlGate()
-  private val goodsControlGates: ListBuffer[GoodsControlGate] = ListBuffer(GoodsControlGate(),GoodsControlGate())
+  private val goodsControlGates: List[GoodsControlGate] = List(GoodsControlGate(),GoodsControlGate())
 
   private val queueManager: QueueManager = QueueManager(queues)
 
@@ -28,6 +28,7 @@ object CustomClearanceSystem {
   private def handleArrival(truck: Truck): Unit = {
     truck.status.state = DocumentCheck
     truck.moveTo(documentControlGate)
+    documentControlGate.logEntry(truck)
   }
 
   private def handleDocumentCheck(truck: Truck): Unit = {
@@ -36,6 +37,7 @@ object CustomClearanceSystem {
 
   private def handleJoiningQueue(truck: Truck): Unit = {
     if(!queueManager.areQueuesFull) {
+      documentControlGate.logExit(truck)
       val (queueIndex, waitingTime) = queueManager.add(truck)
       truck.status.state = InQueue(queueIndex, waitingTime)
       truck.moveTo(queues(queueIndex))
@@ -52,7 +54,7 @@ object CustomClearanceSystem {
         if (goodsControlGate.isGateFree) {
           truck.status.state = GoodsCheck(queueIndex)
           queue.dequeue()
-          goodsControlGate.occupy()
+          goodsControlGate.occupy(truck)
         }
       case _ =>
     }
@@ -72,7 +74,7 @@ object CustomClearanceSystem {
         case _ =>
       }
       truck.status.state = Departed
-      goodsControlGate.release()
+      goodsControlGate.release(truck)
     }
   }
 
@@ -106,12 +108,6 @@ object CustomClearanceSystem {
     val truck = CargoTruck(weight)
     truckList += truck
     truck.truckId
-  }
-
-  def queuesStatus(): Unit ={
-    for (queue <- queues){
-      print(queue.size)
-    }
   }
 
   def step(): Unit = {

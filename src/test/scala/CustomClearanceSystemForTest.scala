@@ -3,14 +3,14 @@ import Traits.ControlGate
 import Traits.TruckLogic.*
 
 import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
+import scala.collection.immutable.List
 
 class CustomClearanceSystemForTest(val queueSize:Int) {
 
   private val truckList: mutable.PriorityQueue[Truck] = mutable.PriorityQueue[Truck]()
-  private val queues: ListBuffer[Queue] = ListBuffer(Queue(queueSize,0), Queue(queueSize,1))
+  private val queues: List[Queue] = List(Queue(queueSize,0), Queue(queueSize,1))
   private val documentControlGate: DocumentControlGate = DocumentControlGate()
-  private val goodsControlGates: ListBuffer[GoodsControlGate] = ListBuffer(GoodsControlGate(),GoodsControlGate())
+  private val goodsControlGates: List[GoodsControlGate] = List(GoodsControlGate(),GoodsControlGate())
 
   private val queueManager: QueueManager = QueueManager(queues)
 
@@ -28,6 +28,7 @@ class CustomClearanceSystemForTest(val queueSize:Int) {
   private def handleArrival(truck: Truck): Unit = {
     truck.status.state = DocumentCheck
     truck.moveTo(documentControlGate)
+    documentControlGate.logEntry(truck)
   }
 
   private def handleDocumentCheck(truck: Truck): Unit = {
@@ -36,6 +37,7 @@ class CustomClearanceSystemForTest(val queueSize:Int) {
 
   private def handleJoiningQueue(truck: Truck): Unit = {
     if(!queueManager.areQueuesFull) {
+      documentControlGate.logExit(truck)
       val (queueIndex, waitingTime) = queueManager.add(truck)
       truck.status.state = InQueue(queueIndex, waitingTime)
       truck.moveTo(queues(queueIndex))
@@ -53,7 +55,7 @@ class CustomClearanceSystemForTest(val queueSize:Int) {
           queue.increaseGateWaitTime(truck.weight)
           truck.status.state = GoodsCheck(queueIndex)
           queue.dequeue()
-          goodsControlGate.occupy()
+          goodsControlGate.occupy(truck)
         }
       case _ =>
     }
@@ -68,19 +70,25 @@ class CustomClearanceSystemForTest(val queueSize:Int) {
     val goodsControlGate = goodsControlGates(gateIndex)
     val weightChecked = goodsControlGate.checkingProcess(truck)
 
-    if (weightChecked != -1 && weightChecked<truck.weight){
-      truck.status.state = GoodsCheck(gateIndex,weightChecked)
-      queueManager.decreaseWaitingTimes(gateIndex,goodsControlGate.weightCheckTempo)
+    if (weightChecked != -1 && weightChecked < truck.weight) {
+      handleWeightChecked(truck, gateIndex, weightChecked, goodsControlGate)
     } else {
-      truck.status.state match {
-        case GoodsCheck(gateIndex,weight) =>
-          queueManager.decreaseWaitingTimes(gateIndex,truck.weight-weight)
-          print(s"Reducing Time wait for queue $gateIndex by ${truck.weight-weight}")
-        case _ =>
-      }
-      truck.status.state = Departed
-      goodsControlGate.release()
+      handleWeightNotChecked(truck, gateIndex, goodsControlGate)
     }
+  }
+
+  private def handleWeightChecked(truck: Truck, gateIndex: Int, weightChecked: Int, goodsControlGate: GoodsControlGate): Unit = {
+    truck.status.state = GoodsCheck(gateIndex, weightChecked)
+    queueManager.decreaseWaitingTimes(gateIndex, goodsControlGate.weightCheckTempo)
+  }
+
+  private def handleWeightNotChecked(truck: Truck, gateIndex: Int, goodsControlGate: GoodsControlGate): Unit = {
+    truck.status.state match {
+      case GoodsCheck(gateIdx, weight) => queueManager.decreaseWaitingTimes(gateIndex, truck.weight - weight)
+      case _ =>
+    }
+    truck.status.state = Departed
+    goodsControlGate.release(truck)
   }
 
   private def handleDeparture(truck: Truck): Unit = {
@@ -116,9 +124,8 @@ class CustomClearanceSystemForTest(val queueSize:Int) {
   }
 
   def queuesStatus(): Unit ={
-    for (queue <- queues){
-      print(queue.size)
-    }
+    val minSize = queues.minBy(_.size).size
+    val maxSize = queues.maxBy(_.size).size
   }
 
   def step(): Unit = {
@@ -138,17 +145,26 @@ class CustomClearanceSystemForTest(val queueSize:Int) {
   }
 
 
-  private def waitingTime(id: String): Option[Int] = {
-    var result: Option[Int] = None
-    for (truck <- truckList) {
-      if (truck.truckId == id) {
-        truck.status.state match {
-          case InQueue(_,waitingTime) =>
-            result = Some(waitingTime)
-          case _ => Error("Waiting Time not yet established")
-        }
-      }
+  private def waitingTime(truckId: String): Option[Int] = {
+    val truckOpt = findTruckById(truckId)
+    truckOpt match {
+      case Some(truck) =>
+        extractWaitingTime(truck)
+      case None =>
+        None // Truck not found
     }
-    result
+  }
+
+  private def findTruckById(truckId: String): Option[Truck] = {
+    truckList.find(_.truckId == truckId)
+  }
+
+  private def extractWaitingTime(truck: Truck): Option[Int] = {
+    truck.status.state match {
+      case InQueue(_, waitingTime) =>
+        Some(waitingTime)
+      case _ =>
+        None // Waiting time not yet established or truck status is not InQueue
+    }
   }
 }

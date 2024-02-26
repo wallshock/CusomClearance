@@ -262,9 +262,8 @@ class CustomClearanceSystemSpec extends AnyFlatSpec with Matchers with BeforeAnd
     val status4 = smallQueueSystem.findStatusById(truckId4)
     val status5 = smallQueueSystem.findStatusById(truckId5)
     val status6 = smallQueueSystem.findStatusById(truckId6)
-    println(smallQueueSystem.getWaitTime(0))
-    println(smallQueueSystem.getWaitTime(1))
-
+    
+    smallQueueSystem.queuesStatus()
     status1.state shouldBe GoodsCheck(0, 1)
     status2.state shouldBe Departed
     status3.state shouldBe InQueue(0,79)
