@@ -27,4 +27,12 @@ trait Truck extends Ordered[Truck]{
       case Departed => 0
     })
   }
+
+  def logEntry(): Unit = {
+    status.location.logEntry(this)
+  }
+
+  def logExit(): Unit = {
+    status.location.logExit(this)
+  }
 }

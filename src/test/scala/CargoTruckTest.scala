@@ -1,3 +1,4 @@
+import Locations.InSystem
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import Traits.Location
@@ -17,7 +18,7 @@ class CargoTruckSpec extends AnyFlatSpec with Matchers {
 
   it should "have a status with location None initially" in {
     val truck = new CargoTruck(5)
-    truck.status.location shouldBe None
+    truck.status.location shouldBe InSystem()
   }
 
   it should "update location when moved" in {
@@ -28,6 +29,6 @@ class CargoTruckSpec extends AnyFlatSpec with Matchers {
       override def logExit(truck: Truck): Unit = {}
     }
     truck.moveTo(newLocation)
-    truck.status.location shouldBe Some("New Location")
+    truck.status.location shouldBe newLocation
   }
 }

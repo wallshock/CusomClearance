@@ -129,14 +129,41 @@ class QueueManagerSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach
     queues(1).enqueue(truck19)
 
     queueManager.optimizeQueues()
+    queues(0).printr()
+    queues(1).printr()
     queues(0).get(0) should be(truck17)
     queues(0).get(1) should be(truck3)
 
     queues(1).get(0) should be(truck19)
     queues(1).get(1) should be(truck14)
   }
+  it should "optimize the queue correctly scenario 5" in {
+    val queues = List(Queue(5, 0), Queue(5, 1))
+    val queueManager = new QueueManager(queues)
 
-  it should "optimize the queue with empty queue" in {
+    val truck17 = CargoTruck(17)
+    val truck9 = CargoTruck(9)
+    val truck1_0 = CargoTruck(1)
+    val truck1_1 = CargoTruck(1)
+    val truck1_2 = CargoTruck(1)
+
+    val truck19 = CargoTruck(19)
+
+    queues(0).enqueue(truck17)
+    queues(0).enqueue(truck9)
+    queues(0).enqueue(truck1_0)
+    queues(0).enqueue(truck1_1)
+    queues(0).enqueue(truck1_2)
+
+    queues(1).enqueue(truck19)
+
+    queueManager.optimizeQueues()
+    queues(0).printr()
+    queues(1).printr()
+
+  }
+
+  it should "optimize the queue with empty queue 1" in {
     val queues = List(Queue(5, 0), Queue(5, 1))
     val queueManager = new QueueManager(queues)
 
@@ -155,6 +182,26 @@ class QueueManagerSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach
 
     queues(1).get(0) should be(truck3)
     queues(1).get(1) should be(truck14)
+  }
+
+  it should "optimize the queue with empty queue 0" in {
+    val queues = List(Queue(5, 0), Queue(5, 1))
+    val queueManager = new QueueManager(queues)
+
+    val truck17 = CargoTruck(17)
+    val truck3 = CargoTruck(3)
+    val truck14 = CargoTruck(14)
+
+
+    queues(1).enqueue(truck17)
+    queues(1).enqueue(truck3)
+    queues(1).enqueue(truck14)
+
+
+    queueManager.optimizeQueues()
+    queues(1).get(0) should be(truck17)
+    queues(0).get(0) should be(truck3)
+    queues(0).get(1) should be(truck14)
   }
 
   it should "work with both queue empty" in {

@@ -16,6 +16,6 @@ class CargoTruck(override val weight: Int) extends Truck {
   override val truckId: String = generateId()
   override val status: TruckStatus = TruckStatus()
   override def moveTo(newLocation: Location): Unit = {
-    status.location = Some(newLocation.getLocation)
+    status.location = newLocation
   }
 }

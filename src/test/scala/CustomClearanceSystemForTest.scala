@@ -1,4 +1,4 @@
-import Locations.{DocumentControlGate, GoodsControlGate, Queue}
+import Locations.{DocumentControlGate, GoodsControlGate, OutOfSystem, Queue}
 import Traits.ControlGate
 import Traits.TruckLogic.*
 
@@ -11,7 +11,7 @@ class CustomClearanceSystemForTest(val queueSize:Int) {
   private val queues: List[Queue] = List(Queue(queueSize,0), Queue(queueSize,1))
   private val documentControlGate: DocumentControlGate = DocumentControlGate()
   private val goodsControlGates: List[GoodsControlGate] = List(GoodsControlGate(),GoodsControlGate())
-
+  private val truckManager: TruckManager = TruckManager()
   private val queueManager: QueueManager = QueueManager(queues)
 
   private def handleState(truck: Truck): Unit = {
@@ -27,8 +27,7 @@ class CustomClearanceSystemForTest(val queueSize:Int) {
 
   private def handleArrival(truck: Truck): Unit = {
     truck.status.state = DocumentCheck
-    truck.moveTo(documentControlGate)
-    documentControlGate.logEntry(truck)
+    truckManager.sendTruckTo(truck,documentControlGate)
   }
 
   private def handleDocumentCheck(truck: Truck): Unit = {
@@ -37,10 +36,10 @@ class CustomClearanceSystemForTest(val queueSize:Int) {
 
   private def handleJoiningQueue(truck: Truck): Unit = {
     if(!queueManager.areQueuesFull) {
-      documentControlGate.logExit(truck)
+      
       val (queueIndex, waitingTime) = queueManager.add(truck)
       truck.status.state = InQueue(queueIndex, waitingTime)
-      truck.moveTo(queues(queueIndex))
+      truckManager.sendTruckTo(truck,queues(queueIndex))
     }
   }
 
@@ -89,10 +88,11 @@ class CustomClearanceSystemForTest(val queueSize:Int) {
     }
     truck.status.state = Departed
     goodsControlGate.release(truck)
+    truckManager.sendTruckTo(truck,OutOfSystem())
   }
 
   private def handleDeparture(truck: Truck): Unit = {
-    truck.status.location = None
+    truck.status.location = OutOfSystem()
     truckList.dequeue()
     //no need to change - garbage collection
   }

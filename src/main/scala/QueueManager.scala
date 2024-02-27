@@ -66,6 +66,7 @@ class QueueManager(queues: List[Queue]) {
     }
   }
 
+//todo take a look
   private def swapBetweenLowAndHighHeuristic(lowerWait: Queue, higherWait: Queue): Unit = {
     for (i <- 1 until higherWait.size) {
       if (higherWait.get(i).weight < lowerWait.get(i).weight) {
