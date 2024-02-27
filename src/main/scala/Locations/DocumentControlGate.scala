@@ -8,12 +8,7 @@ class DocumentControlGate extends ControlGate, Location {
   override def getLocation: String = "DocumentControlGate"
 
   override def checkTruck(truck: Truck): Boolean = {
-    if(true==true) {
-      //performCheck
-      true
-    } else {
-      false
-    }
+    truck.weight != 66 //sample condition to test
   }
   
   override def logEntry(truck: Truck): Unit = {

@@ -16,9 +16,9 @@ class CargoTruckSpec extends AnyFlatSpec with Matchers {
     truck.licensePlate should not be empty
   }
 
-  it should "have a status with location None initially" in {
+  it should "have a status with location InSystem initially" in {
     val truck = new CargoTruck(5)
-    truck.status.location shouldBe InSystem()
+    truck.status.location.isInstanceOf[InSystem] shouldBe true
   }
 
   it should "update location when moved" in {

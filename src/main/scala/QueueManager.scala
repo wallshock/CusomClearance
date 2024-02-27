@@ -7,35 +7,47 @@ import scala.collection.immutable.List
 class QueueManager(queues: List[Queue]) {
 
   def optimizeQueues(): Unit = {
-    if (queues(0).size != queues(1).size) {
-      val (shorterQueue, longerQueue) = getShorterAndLongerQueues()
-      val (lowerWait,higherWait) = getLowerAndHigherQueues()
-      val shorterSize = shorterQueue.size
-      val longerSize = longerQueue.size
+    val (shorterQueue, longerQueue) = getShorterAndLongerQueues
+    val (lowerWait, higherWait) = getLowerAndHigherQueues
 
-      // If lowerQueue is smaller than higherQueue, consider moving elements from higherQueue to lowerQueue
-      if(shorterQueue==higherWait) {
-        //short is bad
-        swapBetweenLowAndHighHeuristic(lowerWait, higherWait)
-        val elementsToChange = getElementsToChange(shorterQueue, longerQueue, shorterSize, longerSize)
-        moveTrucksFromLongerToShorterHeuristic(shorterQueue, longerQueue, elementsToChange)
-
-      }else{
-        val elementsToChange = getElementsToChange(shorterQueue, longerQueue, shorterSize, longerSize)
-        moveTrucksFromLongerToShorterHeuristic(shorterQueue, longerQueue, elementsToChange)
-        val (newShorterQueue, newLongerQueue) = getShorterAndLongerQueues()
-        swapBetweenShortAndLongHeuristic(newShorterQueue, newLongerQueue)
-      }
+    if (queuesAreUnequalSize) {
+      optimizeUnequalQueues(shorterQueue, longerQueue, lowerWait, higherWait)
     }
   }
 
+  private def queuesAreUnequalSize: Boolean = queues(0).size != queues(1).size
+
+  private def optimizeUnequalQueues(shorterQueue: Queue, longerQueue: Queue, lowerWait: Queue, higherWait: Queue): Unit = {
+    val shorterSize = shorterQueue.size
+    val longerSize = longerQueue.size
+
+    if (shorterQueue == higherWait) {
+      optimizeQueuesWithShorterHigherWait(shorterQueue, longerQueue, lowerWait, higherWait, shorterSize, longerSize)
+    } else {
+      optimizeQueuesWithLongerHigherWait(shorterQueue, longerQueue, shorterSize, longerSize)
+    }
+  }
+
+  private def optimizeQueuesWithShorterHigherWait(shorterQueue: Queue, longerQueue: Queue, lowerWait: Queue, higherWait: Queue, shorterSize: Int, longerSize: Int): Unit = {
+    swapBetweenLowAndHighHeuristic(lowerWait, higherWait)
+    val elementsToChange = getElementsToChange(shorterQueue, longerQueue, shorterSize, longerSize)
+    moveTrucksFromLongerToShorterHeuristic(shorterQueue, longerQueue, elementsToChange)
+  }
+
+  private def optimizeQueuesWithLongerHigherWait(shorterQueue: Queue, longerQueue: Queue, shorterSize: Int, longerSize: Int): Unit = {
+    val elementsToChange = getElementsToChange(shorterQueue, longerQueue, shorterSize, longerSize)
+    moveTrucksFromLongerToShorterHeuristic(shorterQueue, longerQueue, elementsToChange)
+    val (newShorterQueue, newLongerQueue) = getShorterAndLongerQueues
+    swapBetweenShortAndLongHeuristic(newShorterQueue, newLongerQueue)
+  }
+
   // This function determines which queue has less waiting time based on gateWayTime and index 0 (those we cannot change)
-  private def getLowerAndHigherQueues(): (Queue, Queue) = {
+  private def getLowerAndHigherQueues: (Queue, Queue) = {
     if (queues(0).waitingTimeAt(1) < queues(1).waitingTimeAt(1)) (queues(0), queues(1))
     else (queues(1), queues(0))
   }
 
-  private def getShorterAndLongerQueues(): (Queue, Queue) = {
+  private def getShorterAndLongerQueues: (Queue, Queue) = {
     if (queues(0).size < queues(1).size) (queues(0), queues(1))
     else (queues(1), queues(0))
   }
@@ -65,11 +77,9 @@ class QueueManager(queues: List[Queue]) {
       }
     }
   }
-
-//todo take a look
   private def swapBetweenLowAndHighHeuristic(lowerWait: Queue, higherWait: Queue): Unit = {
     for (i <- 1 until higherWait.size) {
-      if (higherWait.get(i).weight < lowerWait.get(i).weight) {
+      if (lowerWait.get(i).weight > higherWait.get(i).weight) {
         swap(lowerWait, higherWait, i)
       }
     }
@@ -86,14 +96,19 @@ class QueueManager(queues: List[Queue]) {
 
     for (truck <- tempList.reverse){
       lowerQueue.enqueue(truck)
+      truck.inQueue(lowerQueue.queueIndex, lowerQueue.waitingTime)
     }
   }
 
   private def swap(lowerQueue: Queue, higherQueue: Queue, index: Int): Unit = {
     if (index >= 0 && index < lowerQueue.size && index < higherQueue.size) {
-      val temp = lowerQueue.get(index)
-      lowerQueue.setElementAt(index, higherQueue.get(index))
-      higherQueue.setElementAt(index, temp)
+      val tempTruck = lowerQueue.get(index)
+      val truck = higherQueue.get(index)
+      truck.inQueue(lowerQueue.queueIndex, lowerQueue.waitingTimeAt(index))
+      lowerQueue.setElementAt(index, truck)
+
+      tempTruck.inQueue(higherQueue.queueIndex, lowerQueue.waitingTimeAt(index))
+      higherQueue.setElementAt(index, tempTruck)
     }
   }
 

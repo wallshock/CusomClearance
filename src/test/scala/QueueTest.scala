@@ -22,15 +22,7 @@ class QueueSpec extends AnyFlatSpec with Matchers {
     queue.size should be (0)
     queue.peek should be (None)
   }
-  
-  it should "not allow more than maxSize trucks to be enqueued" in {
-    val queue = new Queue(1,0)
-    val truck1 = new CargoTruck(4)
-    val truck2 = new CargoTruck(4)
 
-    queue.enqueue(truck1) should be (Right(()))
-    queue.enqueue(truck2) should be (Left("Queue is full"))
-  }
 
   it should "return None when trying to dequeue from an empty queue" in {
     val queue = new Queue(1,0)
@@ -119,5 +111,25 @@ class QueueSpec extends AnyFlatSpec with Matchers {
     queue.waitingTime should be(10)
     queue.reduceGateCheckWaitTime(1)
     queue.waitingTime should be(9)
+  }
+
+
+  it should "not allow enqueue when the queue is full" in {
+    val queue = new Queue(1, 0)
+    val truck1 = new CargoTruck(5)
+    val truck2 = new CargoTruck(3)
+
+    queue.enqueue(truck1) should be(Right(()))
+    queue.enqueue(truck2) should be(Left("Queue is full"))
+  }
+
+
+  it should "return None when trying to remove an element at an invalid index" in {
+    val queue = new Queue(1, 0)
+    val truck = new CargoTruck(5)
+
+    queue.enqueue(truck)
+    queue.removeAt(-1) should be(None)
+    queue.removeAt(2) should be(None)
   }
 }

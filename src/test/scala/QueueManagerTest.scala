@@ -5,7 +5,7 @@ import Traits.TruckLogic.Truck
 import org.scalatest.BeforeAndAfterEach
 
 import scala.collection.immutable.List
-
+//todo test status waiting time and we are done
 class QueueManagerSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach {
   var queues: List[Queue] = _
   var queueManager: QueueManager = _
@@ -101,8 +101,6 @@ class QueueManagerSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach
     queues(1).enqueue(truck1)
 
     queueManager.optimizeQueues()
-    queues(0).printr()
-    queues(1).printr()
     queues(0).get(0) should be(truck17)
     queues(0).get(1) should be(truck1)
     queues(0).get(2) should be(truck14)
@@ -129,8 +127,7 @@ class QueueManagerSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach
     queues(1).enqueue(truck19)
 
     queueManager.optimizeQueues()
-    queues(0).printr()
-    queues(1).printr()
+
     queues(0).get(0) should be(truck17)
     queues(0).get(1) should be(truck3)
 

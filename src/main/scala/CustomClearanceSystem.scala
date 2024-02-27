@@ -26,46 +26,58 @@ object CustomClearanceSystem {
   }
 
   private def handleArrival(truck: Truck): Unit = {
-    truck.status.state = DocumentCheck
+    truck.checkDocument()
     truckManager.sendTruckTo(truck,documentControlGate)
   }
 
   private def handleDocumentCheck(truck: Truck): Unit = {
-    truck.status.state = if (documentControlGate.checkTruck(truck)) Staging else Departed
+    if (documentControlGate.checkTruck(truck))
+      truck.moveToStaging()
+    else
+      truck.depart()
   }
 
   private def handleJoiningQueue(truck: Truck): Unit = {
     if(!queueManager.areQueuesFull) {
-
       val (queueIndex, waitingTime) = queueManager.add(truck)
-      truck.status.state = InQueue(queueIndex, waitingTime)
-      truckManager.sendTruckTo(truck,queues(queueIndex))
+      truck.inQueue(queueIndex, waitingTime)
+      truckManager.sendTruckTo(truck, queues(queueIndex))
     }
   }
 
 
   private def handleQueueStep(truck: Truck): Unit = {
-    val queueIndex = getTruckQueueIndex(truck)
+    getTruckQueueIndex(truck) match {
+      case Some(queueIndex) => processQueueStep(truck, queueIndex)
+      case None => throw new Exception("Truck is not in a queue")
+    }
+  }
+
+  private def processQueueStep(truck: Truck, queueIndex: Int): Unit = {
     val queue = queues(queueIndex)
     val goodsControlGate = goodsControlGates(queueIndex)
+
     queue.peek match {
-      case Some(peekTruck) if peekTruck == truck =>
-        if (goodsControlGate.isGateFree) {
-          queue.increaseGateWaitTime(truck.weight)
-          truck.status.state = GoodsCheck(queueIndex)
-          queue.dequeue()
-          goodsControlGate.occupy(truck)
-        }
+      case Some(peekTruck) if peekTruck == truck && goodsControlGate.isGateFree =>
+        processGoodControlGate(truck, queue, goodsControlGate, queueIndex)
       case _ =>
     }
   }
+
+  private def processGoodControlGate(truck: Truck, queue: Queue, goodsControlGate: GoodsControlGate, queueIndex: Int): Unit = {
+    queue.increaseGateWaitTime(truck.weight)
+    truck.checkGoods(queueIndex)
+    queue.dequeue()
+    goodsControlGate.occupy(truck)
+  }
+
 
   def getWaitTime(idx:Int):Int={
     queues(idx).waitingTime
   }
 
   private def handleGoodsCheck(truck: Truck): Unit = {
-    val gateIndex = getTruckGateIndex(truck)
+    val gateIndex = getTruckGateIndex(truck).getOrElse(throw new Exception("Truck is not in gate"))
     val goodsControlGate = goodsControlGates(gateIndex)
     val weightChecked = goodsControlGate.checkingProcess(truck)
 
@@ -77,7 +89,7 @@ object CustomClearanceSystem {
   }
 
   private def handleWeightChecked(truck: Truck, gateIndex: Int, weightChecked: Int, goodsControlGate: GoodsControlGate): Unit = {
-    truck.status.state = GoodsCheck(gateIndex, weightChecked)
+    truck.checkGoods(gateIndex, weightChecked)
     queueManager.decreaseWaitingTimes(gateIndex, goodsControlGate.weightCheckTempo)
   }
 
@@ -86,35 +98,29 @@ object CustomClearanceSystem {
       case GoodsCheck(gateIdx, weight) => queueManager.decreaseWaitingTimes(gateIndex, truck.weight - weight)
       case _ =>
     }
-    truck.status.state = Departed
+    truck.depart()
     goodsControlGate.release(truck)
     truckManager.sendTruckTo(truck,OutOfSystem())
   }
 
   private def handleDeparture(truck: Truck): Unit = {
-    truck.status.location = OutOfSystem()
+    truckManager.sendTruckTo(truck,OutOfSystem())
     truckList.dequeue()
     //no need to change - garbage collection
   }
 
-  private def getTruckQueueIndex(truck: Truck): Int = {
-    var queueIndex = 0
+  private def getTruckQueueIndex(truck: Truck): Option[Int] = {
     truck.status.state match {
-      case InQueue(index, _) =>
-        queueIndex = index
-      case _ => Error("Not in queue")
+      case InQueue(index, _) => Some(index)
+      case _ => None
     }
-    queueIndex
   }
 
-  private def getTruckGateIndex(truck: Truck): Int = {
-    var gateIndex = 0
+  private def getTruckGateIndex(truck: Truck): Option[Int] = {
     truck.status.state match {
-      case GoodsCheck(index, _) =>
-        gateIndex = index
-      case _ => Error("Not in goodsCheckGate")
+      case GoodsCheck(index, _) => Some(index)
+      case _ => None
     }
-    gateIndex
   }
 
   def arrive(weight: Int): String = {

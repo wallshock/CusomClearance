@@ -6,7 +6,7 @@ import Traits.TruckLogic.{InQueue, Truck, TruckState}
 import scala.collection.mutable.ArrayBuffer
 
 class Queue(maxSize: Int, val queueIndex: Int) extends Location {
-  private val elements: ArrayBuffer[Truck] = ArrayBuffer()
+  private val truckArray: ArrayBuffer[Truck] = ArrayBuffer()
   private var gateWaitTime:Int = 0
   override def getLocation: String = "Queue"
 
@@ -19,16 +19,17 @@ class Queue(maxSize: Int, val queueIndex: Int) extends Location {
   }
   def enqueue(truck: Truck): Either[String, Unit] = {
     logEntry(truck)
-    if (elements.size >= maxSize) Left("Queue is full")
+    if (truckArray.size >= maxSize) Left("Queue is full")
     else {
-      elements.append(truck)
+      truckArray.append(truck)
+
       Right(())
     }
   }
   
   def printr():Unit = {
-    for(el <- elements){
-      print(s"${el.weight} ")
+    for(truck <- truckArray){
+      print(s"${truck.weight} ")
     }
     println("")
   }
@@ -37,25 +38,24 @@ class Queue(maxSize: Int, val queueIndex: Int) extends Location {
     gateWaitTime += time
   }
   def dequeue(): Option[Truck] = {
-    if (elements.isEmpty) None
+    if (truckArray.isEmpty) None
     else
-      logExit(elements(0))
-      Some(elements.remove(0))
+      logExit(truckArray(0))
+      Some(truckArray.remove(0))
   }
 
   def setElementAt(index: Int, truck: Truck): Unit = {
     if (index >= 0 && index < maxSize) {
-      elements(index) = truck
+      truckArray(index) = truck
     }
   }
 
-  //todo ugly
   def reduceGateCheckWaitTime(time:Int): Unit = {
     gateWaitTime -= time
-    for(truck <- elements){
+    for(truck <- truckArray){
       truck.status.state match {
         case InQueue(queue, waitingTime) =>{
-          truck.status.state = InQueue(queue,waitingTime-time)
+          truck.inQueue(queue,waitingTime-time)
         }
         case _ =>
       }
@@ -63,31 +63,31 @@ class Queue(maxSize: Int, val queueIndex: Int) extends Location {
   }
 
   def removeAt(i: Int): Option[Truck] = {
-    if (i >= 0 && i < elements.length) {
-      Some(elements.remove(i))
+    if (i >= 0 && i < truckArray.length) {
+      Some(truckArray.remove(i))
     } else None
   }
 
   def size: Int = {
-    elements.size
+    truckArray.size
   }
 
   def peek: Option[Truck] = {
-    elements.headOption
+    truckArray.headOption
   }
 
   def isFull: Boolean = {
-    elements.size == maxSize
+    truckArray.size == maxSize
   }
 
   def get(index: Int): Truck = {
-    if (index >= 0 && index < elements.size) elements(index)
+    if (index >= 0 && index < truckArray.size) truckArray(index)
     else throw new IndexOutOfBoundsException("Invalid index: " + index)
   }
 
   def waitingTime: Int = {
     var result = gateWaitTime
-    for (element <- elements) {
+    for (element <- truckArray) {
       result += element.weight
     }
     result
@@ -95,11 +95,11 @@ class Queue(maxSize: Int, val queueIndex: Int) extends Location {
 
   def waitingTimeAt(index: Int): Int = {
     var result = gateWaitTime
-    if (index >= elements.size) {
+    if (index >= truckArray.size) {
       result = waitingTime
     } else{
       for (i <- 0 until index) {
-        if (i < elements.size) result += elements(i).weight else result += 0
+        if (i < truckArray.size) result += truckArray(i).weight else result += 0
       }
     }
     result

@@ -35,4 +35,28 @@ trait Truck extends Ordered[Truck]{
   def logExit(): Unit = {
     status.location.logExit(this)
   }
+
+  def arrive(): Unit = {
+    status.setState(Arrived)
+  }
+
+  def inQueue(queueNumber: Int, waitingTime: Int): Unit = {
+    status.setState(InQueue(queueNumber, waitingTime))
+  }
+
+  def checkDocument(): Unit = {
+    status.setState(DocumentCheck)
+  }
+
+  def checkGoods(gateNumber: Int, weightChecked: Int = 0): Unit = {
+    status.setState(GoodsCheck(gateNumber, weightChecked))
+  }
+
+  def moveToStaging(): Unit = {
+    status.setState(Staging)
+  }
+
+  def depart(): Unit = {
+    status.setState(Departed)
+  }
 }
