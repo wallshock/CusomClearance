@@ -8,22 +8,23 @@ class QueueManager(queues: List[Queue]) {
 
   def optimizeQueues(): Unit = {
     if (queues(0).size != queues(1).size) {
-      val (lowerWaitQueue, higherWaitQueue) = getLowerAndHigherQueues()
-
-      val lowerSize = lowerWaitQueue.size
-      val higherSize = higherWaitQueue.size
+      val (shorterQueue, longerQueue) = getShorterAndLongerQueues()
+      val (lowerWait,higherWait) = getLowerAndHigherQueues()
+      val shorterSize = shorterQueue.size
+      val longerSize = longerQueue.size
 
       // If lowerQueue is smaller than higherQueue, consider moving elements from higherQueue to lowerQueue
-      if (lowerSize < higherSize) {
-        val toChange = getElementsToChangeShorter(lowerWaitQueue, higherWaitQueue, lowerSize, higherSize)
-        moveTrucksWhenQueueIsLowerAndShorter(lowerWaitQueue, higherWaitQueue, toChange)
-        // If lowerQueue is now larger than higherQueue, consider swapping elements between the queues
-      } else { //lowerQueue is also the longer queue so we have to calculate if moving elements is worth it
-        val toChange = getElementsToChangeLonger(lowerWaitQueue, higherWaitQueue, lowerSize, higherSize)
-        moveTrucksWhenQueueIsLowerAndLonger(lowerWaitQueue, higherWaitQueue, toChange)
-      }
-      if (lowerWaitQueue.size > higherWaitQueue.size) {
-        swapElementsIfNecessary(lowerWaitQueue, higherWaitQueue)
+      if(shorterQueue==higherWait) {
+        //short is bad
+        swapBetweenLowAndHighHeuristic(lowerWait, higherWait)
+        val elementsToChange = getElementsToChange(shorterQueue, longerQueue, shorterSize, longerSize)
+        moveTrucksFromLongerToShorterHeuristic(shorterQueue, longerQueue, elementsToChange)
+
+      }else{
+        val elementsToChange = getElementsToChange(shorterQueue, longerQueue, shorterSize, longerSize)
+        moveTrucksFromLongerToShorterHeuristic(shorterQueue, longerQueue, elementsToChange)
+        val (newShorterQueue, newLongerQueue) = getShorterAndLongerQueues()
+        swapBetweenShortAndLongHeuristic(newShorterQueue, newLongerQueue)
       }
     }
   }
@@ -34,47 +35,46 @@ class QueueManager(queues: List[Queue]) {
     else (queues(1), queues(0))
   }
 
+  private def getShorterAndLongerQueues(): (Queue, Queue) = {
+    if (queues(0).size < queues(1).size) (queues(0), queues(1))
+    else (queues(1), queues(0))
+  }
+
   // This function determines which elements should be moved from higherQueue to lowerQueue
-  private def getElementsToChangeShorter(lowerQueue: Queue, higherQueue: Queue, lowerSize: Int, higherSize: Int): (ListBuffer[Int]) = {
+  private def getElementsToChange(shorterQueue: Queue, longerQueue: Queue, shorterSize: Int, longerSize: Int): ListBuffer[Int] = {
     var toChange:ListBuffer[Int] = ListBuffer()
-    var tempLowerWait = lowerQueue.waitingTime
-    var tempHigherWait = if (lowerSize > 0) higherQueue.waitingTimeAt(lowerSize - 1) else higherQueue.waitingTimeAt(0)
+    var tempShorterWait = shorterQueue.waitingTime
+    var tempLongerWait = longerQueue.waitingTimeAt(shorterSize)
 
     //handle when 0
-    for (i <- lowerSize until higherSize) {
-      if (tempHigherWait > tempLowerWait) {
+    for (i <- shorterSize until longerSize) {
+      if (tempLongerWait > tempShorterWait) {
         toChange += i
-        tempLowerWait += higherQueue.get(i).weight
-      }
-    }
-    toChange
-  }
-//todo
-  private def getElementsToChangeLonger(lowerQueue: Queue, higherQueue: Queue, lowerSize: Int, higherSize: Int): (ListBuffer[Int]) = {
-    var toChange: ListBuffer[Int] = ListBuffer()
-    var tempWaitingTimeOfShorterQueue = lowerQueue.waitingTime
-    var tempWaitingTimeOfLongerQueue = if (lowerSize > 0) higherQueue.waitingTimeAt(lowerSize - 1) else higherQueue.waitingTimeAt(0)
-
-    //handle when 0
-    for (i <- higherSize until lowerSize) {
-      if (tempHigherWait > tempLowerWait) {
-        toChange += i
-        tempLowerWait += higherQueue.get(i).weight
+        tempShorterWait += longerQueue.get(i).weight
+      } else {
+        tempLongerWait += longerQueue.get(i).weight
       }
     }
     toChange
   }
 
-  // This function swaps elements between lowerQueue and higherQueue if necessary
-  private def swapElementsIfNecessary(lowerQueue: Queue, higherQueue: Queue): Unit = {
-    for (i <- 1 until higherQueue.size) {
-      if (lowerQueue.get(i).weight > higherQueue.get(i).weight) {
-        swap(lowerQueue, higherQueue, i)
+  private def swapBetweenShortAndLongHeuristic(shorterQueue: Queue, longerQueue: Queue): Unit = {
+    for (i <- 1 until shorterQueue.size) {
+      if (shorterQueue.get(i).weight < longerQueue.get(i).weight) {
+        swap(shorterQueue, longerQueue, i)
       }
     }
   }
 
-  private def moveTrucksWhenQueueIsLowerAndShorter(lowerQueue: Queue, higherQueue: Queue, indicies: ListBuffer[Int]): Unit = {
+  private def swapBetweenLowAndHighHeuristic(lowerWait: Queue, higherWait: Queue): Unit = {
+    for (i <- 1 until higherWait.size) {
+      if (higherWait.get(i).weight < lowerWait.get(i).weight) {
+        swap(lowerWait, higherWait, i)
+      }
+    }
+  }
+
+  private def moveTrucksFromLongerToShorterHeuristic(lowerQueue: Queue, higherQueue: Queue, indicies: ListBuffer[Int]): Unit = {
     //going from bigger index to smaller to not destroy queue structure
     var tempList:ListBuffer[Truck] = ListBuffer()
 
@@ -84,20 +84,6 @@ class QueueManager(queues: List[Queue]) {
     }
 
     for (truck <- tempList.reverse){
-      lowerQueue.enqueue(truck)
-    }
-  }
-
-  private def moveTrucksWhenQueueIsLowerAndLonger(lowerQueue: Queue, higherQueue: Queue, indicies: ListBuffer[Int]): Unit = {
-    //going from bigger index to smaller to not destroy queue structure
-    var tempList: ListBuffer[Truck] = ListBuffer()
-
-    for (index <- indicies.reverse) {
-      tempList += lowerQueue.get(index)
-      higherQueue.removeAt(index)
-    }
-
-    for (truck <- tempList.reverse) {
       lowerQueue.enqueue(truck)
     }
   }
