@@ -148,11 +148,6 @@ object CustomClearanceSystem {
     }
   }
 
-  def queuesStatus(): Unit ={
-    val minSize = queues.minBy(_.size).size
-    val maxSize = queues.maxBy(_.size).size
-  }
-
   def step(): Unit = {
     printStatus()
     val truckListCopy = truckList.toSeq
@@ -172,7 +167,7 @@ object CustomClearanceSystem {
   }
 
 
-  private def waitingTime(truckId: String): Option[Int] = {
+  def waitingTime(truckId: String): Option[Int] = {
     val truckOpt = findTruckById(truckId)
     truckOpt match {
       case Some(truck) =>

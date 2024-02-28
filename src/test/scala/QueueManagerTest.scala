@@ -198,6 +198,7 @@ class QueueManagerSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach
 
 
     queueManager.optimizeQueues()
+
     queues(1).get(0) should be(truck17)
     queues.head.get(0) should be(truck3)
     queues.head.get(1) should be(truck14)

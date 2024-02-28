@@ -60,14 +60,12 @@ class QueueManager(queues: List[Queue]) {
 
     
     for (i <- shorterSize until longerSize) {
-      if (i!=0) {
-        if (tempLongerWait > tempShorterWait) {
+      if (tempLongerWait > tempShorterWait && i != 0) {
           toChange += i
           tempShorterWait += longerQueue.get(i).weight
         } else {
           tempLongerWait += longerQueue.get(i).weight
         }
-      }
     }
     toChange
   }
