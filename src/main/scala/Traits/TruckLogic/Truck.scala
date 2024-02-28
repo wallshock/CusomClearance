@@ -11,19 +11,21 @@ trait Truck extends Ordered[Truck]{
 
   def compare(that: Truck): Int = {
     (this.status.state match {
-      case Arrived => 5
-      case DocumentCheck => 4
-      case Staging => 3
-      case InQueue(_,_) => 2
-      case GoodsCheck(_,_) => 1
+      case Arrived => 6
+      case DocumentCheck => 5
+      case Staging => 4
+      case InQueue(_,_) => 3
+      case GoodsCheck(_,_) => 2
+      case CustomCleared => 1
       case Departed => 0
     }) -
     (that.status.state match {
-      case Arrived => 5
-      case DocumentCheck => 4
-      case Staging => 3
-      case InQueue(_,_) => 2
-      case GoodsCheck(_,_) => 1
+      case Arrived => 6
+      case DocumentCheck => 5
+      case Staging => 4
+      case InQueue(_,_) => 3
+      case GoodsCheck(_,_) => 2
+      case CustomCleared => 1
       case Departed => 0
     })
   }
@@ -58,5 +60,9 @@ trait Truck extends Ordered[Truck]{
 
   def depart(): Unit = {
     status.setState(Departed)
+  }
+
+  def clear(): Unit = {
+    status.setState(CustomCleared)
   }
 }

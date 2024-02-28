@@ -1,7 +1,7 @@
 import Locations.Queue
+import Traits.TruckLogic.InQueue
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-
 class QueueSpec extends AnyFlatSpec with Matchers {
   "A Queue" should "enqueue and dequeue trucks" in {
     val queue = new Queue(2,0)
@@ -131,5 +131,144 @@ class QueueSpec extends AnyFlatSpec with Matchers {
     queue.enqueue(truck)
     queue.removeAt(-1) should be(None)
     queue.removeAt(2) should be(None)
+  }
+
+  it should "set the truck's status to InQueue when enqueued" in {
+    val queue = new Queue(3, 0)
+    val truck = new CargoTruck(5)
+    val truck1 = new CargoTruck(7)
+    queue.increaseGateWaitTime(12)
+    queue.enqueue(truck)
+    queue.enqueue(truck1)
+
+    truck.status.state match {
+      case InQueue(queueIndex, waitingTime) =>
+        queueIndex shouldBe 0
+        waitingTime shouldBe 12
+      case _ => fail("Truck status should be InQueue")
+    }
+
+    truck1.status.state match {
+      case InQueue(queueIndex, waitingTime) =>
+        queueIndex shouldBe 0
+        waitingTime shouldBe 17
+      case _ => fail("Truck status should be InQueue")
+    }
+  }
+
+  it should "update the truck's status when set at an index" in {
+    val queue = new Queue(3, 0)
+    val truck1 = new CargoTruck(5)
+    val truck2 = new CargoTruck(3)
+    val truck3 = new CargoTruck(10)
+    queue.increaseGateWaitTime(22)
+    queue.enqueue(truck1)
+    queue.setElementAt(0, truck2)
+    queue.enqueue(truck3)
+
+    truck2.status.state match {
+      case InQueue(queueIndex, waitingTime) =>
+        queueIndex shouldBe 0
+        waitingTime shouldBe 22
+      case _ => fail("Truck status should be InQueue")
+    }
+
+    truck3.status.state match {
+      case InQueue(queueIndex, waitingTime) =>
+        queueIndex shouldBe 0
+        waitingTime shouldBe 25
+      case _ => fail("Truck status should be InQueue")
+    }
+  }
+
+  it should "update the enqueued truck's status when set at an index before" in {
+    val queue = new Queue(3, 0)
+    val truck1 = new CargoTruck(5)
+    val truck2 = new CargoTruck(3)
+    val truck3 = new CargoTruck(10)
+    queue.increaseGateWaitTime(22)
+    queue.enqueue(truck1)
+    queue.setElementAt(0, truck2)
+    queue.enqueue(truck3)
+
+    truck2.status.state match {
+      case InQueue(queueIndex, waitingTime) =>
+        queueIndex shouldBe 0
+        waitingTime shouldBe 22
+      case _ => fail("Truck status should be InQueue")
+    }
+
+    truck3.status.state match {
+      case InQueue(queueIndex, waitingTime) =>
+        queueIndex shouldBe 0
+        waitingTime shouldBe 25
+      case _ => fail("Truck status should be InQueue")
+    }
+  }
+
+  it should "recalculate inQueue waitingTime when gatewaytime is reduced correcly" in {
+    val queue = new Queue(3, 0)
+    val truck1 = new CargoTruck(10)
+    queue.increaseGateWaitTime(22)
+    queue.enqueue(truck1)
+
+    truck1.status.state match {
+      case InQueue(queueIndex, waitingTime) =>
+        queueIndex shouldBe 0
+        waitingTime shouldBe 22
+      case _ => fail("Truck status should be InQueue")
+    }
+
+    queue.reduceGateCheckWaitTime(10)
+
+    truck1.status.state match {
+      case InQueue(queueIndex, waitingTime) =>
+        queueIndex shouldBe 0
+        waitingTime shouldBe 12
+      case _ => fail("Truck status should be InQueue")
+    }
+  }
+
+  it should "update the already enqueued truck's status when set at an index before" in {
+    val queue = new Queue(3, 0)
+    val truck1 = new CargoTruck(5)
+    val truck2 = new CargoTruck(3)
+    val truck3 = new CargoTruck(10)
+    queue.increaseGateWaitTime(10)
+
+    queue.enqueue(truck1)
+    queue.enqueue(truck3)
+    queue.setElementAt(0, truck2)
+
+
+    truck3.status.state match {
+      case InQueue(queueIndex, waitingTime) =>
+        queueIndex shouldBe 0
+        waitingTime shouldBe 13
+      case _ => fail("Truck status should be InQueue")
+    }
+
+  }
+
+  it should "update the already enqueued truck's status when removed at an index before" in {
+    val queue = new Queue(3, 0)
+    val truck1 = new CargoTruck(5)
+    val truck2 = new CargoTruck(3)
+    val truck3 = new CargoTruck(10)
+    queue.increaseGateWaitTime(10)
+
+    queue.enqueue(truck1)
+    queue.enqueue(truck2)
+    queue.enqueue(truck3)
+    queue.removeAt(0)
+
+
+    truck3.status.state match {
+      case InQueue(queueIndex, waitingTime) =>
+        queueIndex shouldBe 0
+        waitingTime shouldBe 13
+      case _ => fail("Truck status should be InQueue")
+    }
+
   }
 }

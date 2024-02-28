@@ -1,6 +1,5 @@
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import Locations.Queue
 import Traits.TruckLogic.*
 import org.scalatest.BeforeAndAfterEach
 

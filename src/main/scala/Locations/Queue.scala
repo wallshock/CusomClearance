@@ -1,7 +1,7 @@
 package Locations
 
 import Traits.Location
-import Traits.TruckLogic.{InQueue, Truck, TruckState}
+import Traits.TruckLogic.{InQueue, Truck}
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -11,11 +11,11 @@ class Queue(maxSize: Int, val queueIndex: Int) extends Location {
   override def getLocation: String = "Queue"
 
   override def logEntry(truck: Truck): Unit = {
-    println(s"Truck ${truck.licensePlate} entered the ${getLocation} at ${java.time.LocalDateTime.now}")
+    println(s"Truck ${truck.licensePlate} entered the $getLocation at ${java.time.LocalDateTime.now}")
   }
 
   override def logExit(truck: Truck): Unit = {
-    println(s"Truck ${truck.licensePlate} exited the ${getLocation} at ${java.time.LocalDateTime.now}")
+    println(s"Truck ${truck.licensePlate} exited the $getLocation at ${java.time.LocalDateTime.now}")
   }
   def enqueue(truck: Truck): Either[String, Unit] = {
     if (truckArray.size >= maxSize) Left("Queue is full")
@@ -27,9 +27,11 @@ class Queue(maxSize: Int, val queueIndex: Int) extends Location {
   }
   
   def printr():Unit = {
+    print(s"Queue$queueIndex: ")
     for(truck <- truckArray){
       print(s"${truck.weight} ")
     }
+    print(s"| Wait Time: $waitingTime  Queue + GateWaitTime")
     println("")
   }
 
@@ -43,27 +45,35 @@ class Queue(maxSize: Int, val queueIndex: Int) extends Location {
   }
 
   def setElementAt(index: Int, truck: Truck): Unit = {
-    if (index >= 0 && index < maxSize) {
+    if (index >= 0 && index < truckArray.length) {
+      for(i <- index until truckArray.length){
+        val truckTemp = truckArray(i)
+        truckTemp.inQueue(queueIndex, waitingTimeAt(index) + truck.weight)
+      }
       truck.inQueue(queueIndex, waitingTimeAt(index))
       truckArray(index) = truck
-      //todo adjust rest of truck status
     }
   }
 
   def reduceGateCheckWaitTime(time:Int): Unit = {
     gateWaitTime -= time
+
     for(truck <- truckArray){
       truck.status.state match {
-        case InQueue(queue, waitingTime) =>{
-          truck.inQueue(queue,waitingTime-time)
-        }
-        case _ =>
+        case InQueue(idx,timeOld) => truck.inQueue(idx,timeOld-time)
       }
     }
   }
 
   def removeAt(i: Int): Option[Truck] = {
     if (i >= 0 && i < truckArray.length) {
+      for(index <- i until truckArray.length){
+        val truck = truckArray(index)
+        truck.status.state match {
+          case InQueue(idx,waitTime) => truck.inQueue(idx,waitTime-truckArray(i).weight)
+          case _ =>
+        }
+      }
       Some(truckArray.remove(i))
     } else None
   }

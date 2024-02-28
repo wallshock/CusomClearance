@@ -2,9 +2,11 @@ import Traits.Location
 import Traits.TruckLogic.Truck
 
 class TruckManager {
+  val logging = true
   def sendTruckTo(truck: Truck, newLocation: Location): Unit = {
-    truck.logExit()
+    if (logging) truck.logExit() 
     truck.moveTo(newLocation)
-    truck.logEntry()
+    if (logging) truck.logEntry()
   }
+  
 }

@@ -1,13 +1,13 @@
-import Locations.{OutOfSystem, DocumentControlGate, GoodsControlGate, Queue}
-import Traits.ControlGate
+import Locations.{DocumentControlGate, GoodsControlGate, InSystem, OutOfSystem, Queue, Waiting}
 import Traits.TruckLogic.*
+import util.TruckPriorityQueue
 
 import scala.collection.mutable
 import scala.collection.immutable.List
 
 object CustomClearanceSystem {
 
-  private val truckList: mutable.PriorityQueue[Truck] = mutable.PriorityQueue[Truck]()
+  private val truckList: TruckPriorityQueue = new TruckPriorityQueue()
   private val queues: List[Queue] = List(Queue(5,0), Queue(5,1))
   private val documentControlGate: DocumentControlGate = DocumentControlGate()
   private val goodsControlGates: List[GoodsControlGate] = List(GoodsControlGate(),GoodsControlGate())
@@ -22,6 +22,7 @@ object CustomClearanceSystem {
       case InQueue(_,_) => handleQueueStep(truck)
       case GoodsCheck(_,_) => handleGoodsCheck(truck)
       case Departed => handleDeparture(truck)
+      case CustomCleared => handleDeparture(truck)
     }
   }
 
@@ -32,8 +33,11 @@ object CustomClearanceSystem {
 
   private def handleDocumentCheck(truck: Truck): Unit = {
     if (documentControlGate.checkTruck(truck))
+      println("Document Check Successfull, moving to Staging")
       truck.moveToStaging()
     else
+      println("Document check went wrong, Departing")
+      truckManager.sendTruckTo(truck,OutOfSystem())
       truck.depart()
   }
 
@@ -58,21 +62,17 @@ object CustomClearanceSystem {
 
     queue.peek match {
       case Some(peekTruck) if peekTruck == truck && goodsControlGate.isGateFree =>
-        processGoodControlGate(truck, queue, goodsControlGate, queueIndex)
+        processTransitionToGoodControlGate(truck, queue, goodsControlGate, queueIndex)
       case _ =>
     }
   }
 
-  private def processGoodControlGate(truck: Truck, queue: Queue, goodsControlGate: GoodsControlGate, queueIndex: Int): Unit = {
+  private def processTransitionToGoodControlGate(truck: Truck, queue: Queue, goodsControlGate: GoodsControlGate, queueIndex: Int): Unit = {
     queue.increaseGateWaitTime(truck.weight)
     truck.checkGoods(queueIndex)
+    truckManager.sendTruckTo(truck,GoodsControlGate())
     queue.dequeue()
     goodsControlGate.occupy(truck)
-  }
-
-
-  def getWaitTime(idx:Int):Int={
-    queues(idx).waitingTime
   }
 
   private def handleGoodsCheck(truck: Truck): Unit = {
@@ -82,30 +82,44 @@ object CustomClearanceSystem {
 
     if (weightChecked != -1 && weightChecked < truck.weight) {
       handleWeightChecked(truck, gateIndex, weightChecked, goodsControlGate)
+
     } else {
-      handleWeightNotChecked(truck, gateIndex, goodsControlGate)
+      handleWeightCheckOver(truck, gateIndex, goodsControlGate)
     }
   }
 
   private def handleWeightChecked(truck: Truck, gateIndex: Int, weightChecked: Int, goodsControlGate: GoodsControlGate): Unit = {
+    println(s"Weight Checked at gate $gateIndex: $weightChecked")
     truck.checkGoods(gateIndex, weightChecked)
-    queueManager.decreaseWaitingTimes(gateIndex, goodsControlGate.weightCheckTempo)
+    queueManager.decreaseWaitingTimes(gateIndex, 1)
   }
 
-  private def handleWeightNotChecked(truck: Truck, gateIndex: Int, goodsControlGate: GoodsControlGate): Unit = {
+  private def handleWeightCheckOver(truck: Truck, gateIndex: Int, goodsControlGate: GoodsControlGate): Unit = {
     truck.status.state match {
-      case GoodsCheck(gateIdx, weight) => queueManager.decreaseWaitingTimes(gateIndex, truck.weight - weight)
+      case GoodsCheck(gateIdx, weight) =>
+        if(weight != truck.weight-1)
+          println(s"Found illegal goods in ${truck.licensePlate}")
+          queueManager.decreaseWaitingTimes(gateIndex, truck.weight - weight)
+          truck.depart()
+        else
+          queueManager.decreaseWaitingTimes(gateIndex, 1)
+          println(s"Truck custom cleared")
+          truck.clear()
       case _ =>
     }
-    truck.depart()
     goodsControlGate.release(truck)
-    truckManager.sendTruckTo(truck,OutOfSystem())
+  }
+
+  def printStatus(): Unit = {
+    status.foreach(el => print(s"${el.state} "))
+    println("")
+    queues(0).printr()
+    queues(1).printr()
   }
 
   private def handleDeparture(truck: Truck): Unit = {
     truckManager.sendTruckTo(truck,OutOfSystem())
-    truckList.dequeue()
-    //no need to change - garbage collection
+    truckList.remove(truck)
   }
 
   private def getTruckQueueIndex(truck: Truck): Option[Int] = {
@@ -122,10 +136,16 @@ object CustomClearanceSystem {
     }
   }
 
-  def arrive(weight: Int): String = {
-    val truck = CargoTruck(weight)
-    truckList += truck
-    truck.truckId
+  def arrive(weight: Int): Option[String] = {
+    if (weight <= 0) {
+      println("Invalid weight. Please provide a weight between 1 and MaxWeight")
+      None
+    } else {
+      val truck = new CargoTruck(weight)
+      truckList.enqueue(truck)
+      truckManager.sendTruckTo(truck,Waiting())
+      Some(truck.truckId)
+    }
   }
 
   def queuesStatus(): Unit ={
@@ -134,15 +154,17 @@ object CustomClearanceSystem {
   }
 
   def step(): Unit = {
+    printStatus()
+    val truckListCopy = truckList.toSeq
 
-    for (truck <- truckList) {
+    for (truck <- truckListCopy) {
       handleState(truck)
     }
 
     queueManager.optimizeQueues()
   }
   def status: List[TruckStatus] = {
-    truckList.map(truck => truck.status).toList
+    truckList.toStatus
   }
 
   def findStatusById(truckId: String): TruckStatus = {

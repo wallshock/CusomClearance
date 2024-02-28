@@ -1,7 +1,7 @@
 import Locations.Queue
 import Traits.TruckLogic.Truck
 
-import scala.collection.mutable.{ArrayBuffer, ListBuffer}
+import scala.collection.mutable.ListBuffer
 import scala.collection.immutable.List
 
 class QueueManager(queues: List[Queue]) {
@@ -15,7 +15,7 @@ class QueueManager(queues: List[Queue]) {
     }
   }
 
-  private def queuesAreUnequalSize: Boolean = queues(0).size != queues(1).size
+  private def queuesAreUnequalSize: Boolean = queues.head.size != queues(1).size
 
   private def optimizeUnequalQueues(shorterQueue: Queue, longerQueue: Queue, lowerWait: Queue, higherWait: Queue): Unit = {
     val shorterSize = shorterQueue.size
@@ -43,28 +43,30 @@ class QueueManager(queues: List[Queue]) {
 
   // This function determines which queue has less waiting time based on gateWayTime and index 0 (those we cannot change)
   private def getLowerAndHigherQueues: (Queue, Queue) = {
-    if (queues(0).waitingTimeAt(1) < queues(1).waitingTimeAt(1)) (queues(0), queues(1))
-    else (queues(1), queues(0))
+    if (queues.head.waitingTimeAt(1) < queues(1).waitingTimeAt(1)) (queues.head, queues(1))
+    else (queues(1), queues.head)
   }
 
   private def getShorterAndLongerQueues: (Queue, Queue) = {
-    if (queues(0).size < queues(1).size) (queues(0), queues(1))
-    else (queues(1), queues(0))
+    if (queues.head.size < queues(1).size) (queues.head, queues(1))
+    else (queues(1), queues.head)
   }
 
   // This function determines which elements should be moved from higherQueue to lowerQueue
   private def getElementsToChange(shorterQueue: Queue, longerQueue: Queue, shorterSize: Int, longerSize: Int): ListBuffer[Int] = {
-    var toChange:ListBuffer[Int] = ListBuffer()
+    val toChange:ListBuffer[Int] = ListBuffer()
     var tempShorterWait = shorterQueue.waitingTime
     var tempLongerWait = longerQueue.waitingTimeAt(shorterSize)
 
-    //handle when 0
+    
     for (i <- shorterSize until longerSize) {
-      if (tempLongerWait > tempShorterWait) {
-        toChange += i
-        tempShorterWait += longerQueue.get(i).weight
-      } else {
-        tempLongerWait += longerQueue.get(i).weight
+      if (i!=0) {
+        if (tempLongerWait > tempShorterWait) {
+          toChange += i
+          tempShorterWait += longerQueue.get(i).weight
+        } else {
+          tempLongerWait += longerQueue.get(i).weight
+        }
       }
     }
     toChange
@@ -85,12 +87,12 @@ class QueueManager(queues: List[Queue]) {
     }
   }
 
-  private def moveTrucksFromLongerToShorterHeuristic(lowerQueue: Queue, higherQueue: Queue, indicies: ListBuffer[Int]): Unit = {
+  private def moveTrucksFromLongerToShorterHeuristic(lowerQueue: Queue, higherQueue: Queue, indices: ListBuffer[Int]): Unit = {
 
     //going from bigger index to smaller to not destroy queue structure
-    var tempList:ListBuffer[Truck] = ListBuffer()
+    val tempList:ListBuffer[Truck] = ListBuffer()
 
-    for (index <- indicies.reverse){
+    for (index <- indices.reverse){
       tempList += higherQueue.get(index)
       higherQueue.removeAt(index)
     }

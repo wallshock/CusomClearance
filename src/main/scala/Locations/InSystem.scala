@@ -10,6 +10,6 @@ class InSystem extends Location {
     println(s"Truck ${truck.licensePlate} entered the system ${java.time.LocalDateTime.now}")
   }
   override def logExit(truck: Truck): Unit = {
-    println(s"Truck ${truck.licensePlate} remvoed from the system at ${java.time.LocalDateTime.now}")
+    print("")
   }
 }

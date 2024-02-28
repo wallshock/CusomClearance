@@ -7,7 +7,6 @@ class GoodsControlGate extends ControlGate, Location {
 
   override def getLocation: String = "GoodsControlGate"
   private var gateFree: Boolean = true
-  val weightCheckTempo: Int = 1
   override def checkTruck(truck: Truck): Boolean = {
     truck.weight != 60 //sample condition to test
   }
@@ -28,10 +27,10 @@ class GoodsControlGate extends ControlGate, Location {
 
   
   override def logEntry(truck: Truck): Unit = {
-    println(s"Truck ${truck.licensePlate} entered the gate at ${getLocation} at ${java.time.LocalDateTime.now}")
+    println(s"Truck ${truck.licensePlate} entered the gate ${getLocation} at ${java.time.LocalDateTime.now}")
   }
   override def logExit(truck: Truck): Unit = {
-    println(s"Truck ${truck.licensePlate} exited the gate at ${getLocation} at ${java.time.LocalDateTime.now}")
+    println(s"Truck ${truck.licensePlate} exited the gate ${getLocation} at ${java.time.LocalDateTime.now}")
   }
   def isGateFree: Boolean = {
     gateFree
