@@ -18,11 +18,10 @@ class Queue(maxSize: Int, val queueIndex: Int) extends Location {
     println(s"Truck ${truck.licensePlate} exited the ${getLocation} at ${java.time.LocalDateTime.now}")
   }
   def enqueue(truck: Truck): Either[String, Unit] = {
-    logEntry(truck)
     if (truckArray.size >= maxSize) Left("Queue is full")
     else {
+      truck.inQueue(queueIndex,waitingTime)
       truckArray.append(truck)
-
       Right(())
     }
   }
@@ -40,13 +39,14 @@ class Queue(maxSize: Int, val queueIndex: Int) extends Location {
   def dequeue(): Option[Truck] = {
     if (truckArray.isEmpty) None
     else
-      logExit(truckArray(0))
       Some(truckArray.remove(0))
   }
 
   def setElementAt(index: Int, truck: Truck): Unit = {
     if (index >= 0 && index < maxSize) {
+      truck.inQueue(queueIndex, waitingTimeAt(index))
       truckArray(index) = truck
+      //todo adjust rest of truck status
     }
   }
 

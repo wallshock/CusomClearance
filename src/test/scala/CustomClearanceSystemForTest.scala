@@ -39,7 +39,6 @@ class CustomClearanceSystemForTest(val queueSize:Int) {
   private def handleJoiningQueue(truck: Truck): Unit = {
     if(!queueManager.areQueuesFull) {
       val (queueIndex, waitingTime) = queueManager.add(truck)
-      truck.inQueue(queueIndex, waitingTime)
       truckManager.sendTruckTo(truck, queues(queueIndex))
     }
   }
@@ -113,6 +112,11 @@ class CustomClearanceSystemForTest(val queueSize:Int) {
       case InQueue(index, _) => Some(index)
       case _ => None
     }
+  }
+  
+  def printq():Unit ={
+    queues(0).printr()
+    queues(1).printr()
   }
 
   private def getTruckGateIndex(truck: Truck): Option[Int] = {

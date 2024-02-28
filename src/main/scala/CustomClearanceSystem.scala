@@ -39,8 +39,7 @@ object CustomClearanceSystem {
 
   private def handleJoiningQueue(truck: Truck): Unit = {
     if(!queueManager.areQueuesFull) {
-      val (queueIndex, waitingTime) = queueManager.add(truck)
-      truck.inQueue(queueIndex, waitingTime)
+      val (queueIndex, _) = queueManager.add(truck)
       truckManager.sendTruckTo(truck, queues(queueIndex))
     }
   }

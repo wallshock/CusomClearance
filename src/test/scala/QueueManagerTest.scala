@@ -157,7 +157,11 @@ class QueueManagerSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach
     queueManager.optimizeQueues()
     queues(0).printr()
     queues(1).printr()
-
+    println(truck17.status.state)
+    println(truck9.status.state)
+    println(truck1_0.status.state)
+    println(truck1_1.status.state)
+    println(truck1_2.status.state)
   }
 
   it should "optimize the queue with empty queue 1" in {

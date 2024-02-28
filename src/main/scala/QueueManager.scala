@@ -86,6 +86,7 @@ class QueueManager(queues: List[Queue]) {
   }
 
   private def moveTrucksFromLongerToShorterHeuristic(lowerQueue: Queue, higherQueue: Queue, indicies: ListBuffer[Int]): Unit = {
+
     //going from bigger index to smaller to not destroy queue structure
     var tempList:ListBuffer[Truck] = ListBuffer()
 
@@ -96,7 +97,6 @@ class QueueManager(queues: List[Queue]) {
 
     for (truck <- tempList.reverse){
       lowerQueue.enqueue(truck)
-      truck.inQueue(lowerQueue.queueIndex, lowerQueue.waitingTime)
     }
   }
 
@@ -104,10 +104,7 @@ class QueueManager(queues: List[Queue]) {
     if (index >= 0 && index < lowerQueue.size && index < higherQueue.size) {
       val tempTruck = lowerQueue.get(index)
       val truck = higherQueue.get(index)
-      truck.inQueue(lowerQueue.queueIndex, lowerQueue.waitingTimeAt(index))
       lowerQueue.setElementAt(index, truck)
-
-      tempTruck.inQueue(higherQueue.queueIndex, lowerQueue.waitingTimeAt(index))
       higherQueue.setElementAt(index, tempTruck)
     }
   }

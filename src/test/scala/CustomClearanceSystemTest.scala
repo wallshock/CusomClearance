@@ -40,7 +40,7 @@ class CustomClearanceSystemSpec extends AnyFlatSpec with Matchers with BeforeAnd
   it should "transition to InQueue on third step" in {
     stepSystem(system,3)
     val statusAfterThirdStep = system.status.head
-    statusAfterThirdStep.state shouldBe InQueue(0, TestTruckWeight)
+    statusAfterThirdStep.state shouldBe InQueue(0, 0)
   }
 
   it should "transition to GoodsCheck on fourth step" in {
@@ -82,8 +82,8 @@ class CustomClearanceSystemSpec extends AnyFlatSpec with Matchers with BeforeAnd
     stepSystem(system,3)
     val statusHead = system.status.head
     val statusTail = system.status(1)
-    statusHead.state shouldBe InQueue(0, 50)
-    statusTail.state shouldBe InQueue(1, 40)
+    statusHead.state shouldBe InQueue(0, 0)
+    statusTail.state shouldBe InQueue(1, 0)
   }
 
   it should "transition to different GoodCheckStations with two trucks" in {
@@ -104,7 +104,7 @@ class CustomClearanceSystemSpec extends AnyFlatSpec with Matchers with BeforeAnd
     val status3 = system.findStatusById(truckId3)
     status1.state shouldBe GoodsCheck(0,0)
     status2.state shouldBe GoodsCheck(1,0)
-    status3.state shouldBe InQueue(1,44)
+    status3.state shouldBe InQueue(1,40)
   }
 
   it should "have waitingTime decreased when waiting in Queue" in {
@@ -117,7 +117,7 @@ class CustomClearanceSystemSpec extends AnyFlatSpec with Matchers with BeforeAnd
 
     status1.state shouldBe GoodsCheck(0,1)
     status2.state shouldBe GoodsCheck(1,1)
-    status3.state shouldBe InQueue(1,43)
+    status3.state shouldBe InQueue(1,39)
   }
 
   it should "have waitingTime decreased when waiting in Queue 2" in {
@@ -132,8 +132,8 @@ class CustomClearanceSystemSpec extends AnyFlatSpec with Matchers with BeforeAnd
 
     status1.state shouldBe GoodsCheck(0, 2)
     status2.state shouldBe GoodsCheck(1, 2)
-    status3.state shouldBe InQueue(1, 42)
-    status4.state shouldBe InQueue(1, 48)
+    status3.state shouldBe InQueue(1, 38)
+    status4.state shouldBe InQueue(1, 42)
   }
 
   it should "have waitingTime decreased when waiting in Queue 3" in {
@@ -148,8 +148,8 @@ class CustomClearanceSystemSpec extends AnyFlatSpec with Matchers with BeforeAnd
 
     status1.state shouldBe GoodsCheck(0, 3)
     status2.state shouldBe GoodsCheck(1, 3)
-    status3.state shouldBe InQueue(1, 41)
-    status4.state shouldBe InQueue(1, 47)
+    status3.state shouldBe InQueue(1, 37)
+    status4.state shouldBe InQueue(1, 41)
   }
 
   "A CustomClearanceSystem" should "handle arrival of many trucks with small queue" in {
@@ -203,8 +203,8 @@ class CustomClearanceSystemSpec extends AnyFlatSpec with Matchers with BeforeAnd
     val status3 = smallQueueSystem.findStatusById(truckId3)
     val status4 = smallQueueSystem.findStatusById(truckId4)
 
-    status1.state shouldBe InQueue(0,50)
-    status2.state shouldBe InQueue(1,40)
+    status1.state shouldBe InQueue(0,0)
+    status2.state shouldBe InQueue(1,0)
     status3.state shouldBe Staging
     status4.state shouldBe Staging
   }
@@ -224,8 +224,8 @@ class CustomClearanceSystemSpec extends AnyFlatSpec with Matchers with BeforeAnd
 
     status1.state shouldBe GoodsCheck(0,0)
     status2.state shouldBe GoodsCheck(1,0)
-    status3.state shouldBe InQueue(1,44)
-    status4.state shouldBe InQueue(0,56)
+    status3.state shouldBe InQueue(1,40)
+    status4.state shouldBe InQueue(0,50)
   }
 
   "A CustomClearanceSystem" should "handle queue management many trucks with small queue 2" in {
@@ -243,8 +243,8 @@ class CustomClearanceSystemSpec extends AnyFlatSpec with Matchers with BeforeAnd
 
     status1.state shouldBe GoodsCheck(0, 1)
     status2.state shouldBe GoodsCheck(1, 1)
-    status3.state shouldBe InQueue(1, 43)
-    status4.state shouldBe InQueue(0, 55)
+    status3.state shouldBe InQueue(1, 39)
+    status4.state shouldBe InQueue(0, 49)
   }
 
   "A CustomClearanceSystem" should "handle rejection of Truck and adjustment of waiting times" in {
@@ -266,9 +266,9 @@ class CustomClearanceSystemSpec extends AnyFlatSpec with Matchers with BeforeAnd
     smallQueueSystem.queuesStatus()
     status1.state shouldBe GoodsCheck(0, 1)
     status2.state shouldBe Departed
-    status3.state shouldBe InQueue(0,79)
+    status3.state shouldBe InQueue(0,49)
     status4.state shouldBe GoodsCheck(1,0)
-    status5.state shouldBe InQueue(0,89)
-    status6.state shouldBe InQueue(1,25)
+    status5.state shouldBe InQueue(1,25)
+    status6.state shouldBe InQueue(1,20)
   }
 }
