@@ -9,7 +9,7 @@ Zadanie zostało zrealizowane w Scali 3.3.1
 
 # Uruchamianie
 
-- Projekt uruchamiamy za pomocą klasy Simulation i operujemy z konsoli
+- Projekt uruchamiamy za pomocą klasy Simulation z poziomu Intellij i operujemy z konsoli
 
 # Opis rozwiązania
 
@@ -45,7 +45,7 @@ Algorytm:
 
 Dodatkowe informacje:
 - Nie patrzyłem na to aby printowanie było umieszczone konsekwentnie w kodzie, jest jedynie pomocą dla zobaczenia zmiany stanów.
-- Konsekwentne printowanie jest zrobione dla kazdej lokacji gdy do niej wchodzimy lub ja opuszczmy, jednak syfi konsole można to wyłączyc w TruckManager.
+- Konsekwentne printowanie jest zrobione dla kazdej lokacji gdy do niej wchodzimy lub ja opuszczmy, można to wyłączyc w TruckManager aby odsyfić konsole.
 
 # Co można było zrobić lepiej
 
